@@ -1,0 +1,29 @@
+# PostgreSQL for the POS, run on the store's Ubuntu PC.
+# Usage: copy .env.example to .env, fill it in, then `docker compose up -d`.
+services:
+  db:
+    image: postgres:16.4
+    container_name: pos-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: abarrotes_pos
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POS_OWNER_PASSWORD: ${POS_OWNER_PASSWORD:?set POS_OWNER_PASSWORD in .env}
+      POS_APP_PASSWORD: ${POS_APP_PASSWORD:?set POS_APP_PASSWORD in .env}
+      TZ: America/Mexico_City
+      PGTZ: America/Mexico_City
+    ports:
+      # Bind only to the server's LAN address (never 0.0.0.0 on a machine with a public IP).
+      - "${DB_BIND_IP:?set DB_BIND_IP in .env}:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d abarrotes_pos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

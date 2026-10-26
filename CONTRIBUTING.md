@@ -18,10 +18,11 @@
 
 - Add a new numbered file in `db/migrations/` (`0002_<what>.sql`). Never edit a migration that has already run on the store server.
 - Wrap each migration in `BEGIN; ... COMMIT;`.
-- Apply it as `pos_owner`:
+- Apply it as `pos_owner` on the Docker database:
   ```bash
-  psql -h <server-ip> -U pos_owner -d abarrotes_pos -v ON_ERROR_STOP=1 -f db/migrations/0002_<what>.sql
+  docker exec -i pos-db psql -U pos_owner -d abarrotes_pos -v ON_ERROR_STOP=1 < db/migrations/0002_<what>.sql
   ```
+- Local development uses the same `compose.yaml`: copy `.env.example` to `.env`, set `DB_BIND_IP=127.0.0.1`, then `docker compose up -d`.
 
 ## Language
 
